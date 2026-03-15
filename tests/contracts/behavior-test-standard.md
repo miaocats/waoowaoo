@@ -2,7 +2,10 @@
 
 ## Scope
 - `tests/integration/api/contract/**/*.test.ts`
+- `tests/integration/provider/**/*.test.ts`
 - `tests/integration/chain/**/*.test.ts`
+- `tests/system/**/*.test.ts`
+- `tests/regression/**/*.test.ts`
 - `tests/unit/worker/**/*.test.ts`
 
 ## Must-have
@@ -23,3 +26,4 @@
 ## Regression rule
 - One historical bug must map to at least one dedicated regression test case.
 - Bug fix without matching behavior regression test is incomplete.
+- Provider or gateway protocol changes must add a provider contract test or update an existing localhost fake-provider scenario.

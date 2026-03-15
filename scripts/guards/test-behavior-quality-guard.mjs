@@ -6,7 +6,10 @@ import path from 'path'
 const root = process.cwd()
 const targetDirs = [
   path.join(root, 'tests', 'integration', 'api', 'contract'),
+  path.join(root, 'tests', 'integration', 'provider'),
   path.join(root, 'tests', 'integration', 'chain'),
+  path.join(root, 'tests', 'system'),
+  path.join(root, 'tests', 'regression'),
 ]
 
 function fail(title, details = []) {

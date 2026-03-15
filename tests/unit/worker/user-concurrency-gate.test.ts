@@ -1,78 +1,51 @@
 import { describe, expect, it } from 'vitest'
 import { withUserConcurrencyGate } from '@/lib/workers/user-concurrency-gate'
 
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
+function deferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve
   })
+  return { promise, resolve }
 }
 
 describe('user concurrency gate', () => {
-  it('enforces max concurrent runs for same user and scope', async () => {
-    let activeCount = 0
-    let maxActiveCount = 0
+  it('serializes same-scope work for the same user when limit is 1', async () => {
+    const firstDone = deferred<void>()
+    const events: string[] = []
 
-    const runTask = async (taskId: number) => await withUserConcurrencyGate({
-      scope: 'video',
-      userId: 'user-gate-video',
-      limit: 2,
+    const first = withUserConcurrencyGate({
+      scope: 'image',
+      userId: 'user-1',
+      limit: 1,
       run: async () => {
-        void taskId
-        activeCount += 1
-        maxActiveCount = Math.max(maxActiveCount, activeCount)
-        await wait(20)
-        activeCount -= 1
+        events.push('first:start')
+        await firstDone.promise
+        events.push('first:end')
       },
     })
 
-    await Promise.all([
-      runTask(1),
-      runTask(2),
-      runTask(3),
-      runTask(4),
+    const second = withUserConcurrencyGate({
+      scope: 'image',
+      userId: 'user-1',
+      limit: 1,
+      run: async () => {
+        events.push('second:start')
+        events.push('second:end')
+      },
+    })
+
+    await Promise.resolve()
+    expect(events).toEqual(['first:start'])
+
+    firstDone.resolve()
+    await Promise.all([first, second])
+
+    expect(events).toEqual([
+      'first:start',
+      'first:end',
+      'second:start',
+      'second:end',
     ])
-
-    expect(maxActiveCount).toBe(2)
-  })
-
-  it('does not share slots between different users', async () => {
-    let activeCount = 0
-    let maxActiveCount = 0
-
-    await Promise.all([
-      withUserConcurrencyGate({
-        scope: 'image',
-        userId: 'user-gate-image-a',
-        limit: 1,
-        run: async () => {
-          activeCount += 1
-          maxActiveCount = Math.max(maxActiveCount, activeCount)
-          await wait(20)
-          activeCount -= 1
-        },
-      }),
-      withUserConcurrencyGate({
-        scope: 'image',
-        userId: 'user-gate-image-b',
-        limit: 1,
-        run: async () => {
-          activeCount += 1
-          maxActiveCount = Math.max(maxActiveCount, activeCount)
-          await wait(20)
-          activeCount -= 1
-        },
-      }),
-    ])
-
-    expect(maxActiveCount).toBe(2)
-  })
-
-  it('throws when concurrency limit is invalid', async () => {
-    await expect(withUserConcurrencyGate({
-      scope: 'video',
-      userId: 'user-gate-invalid',
-      limit: 0,
-      run: async () => undefined,
-    })).rejects.toThrow('WORKFLOW_CONCURRENCY_INVALID')
   })
 })

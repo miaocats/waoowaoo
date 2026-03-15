@@ -1,4 +1,5 @@
 import { logInfo as _ulogInfo, logError as _ulogError } from '@/lib/logging/core'
+import { buildFalQueueUrl } from '@/lib/providers/fal/base-url'
 /**
  * 异步任务提交工具
  * 
@@ -24,7 +25,7 @@ export async function submitFalTask(endpoint: string, input: Record<string, unkn
         throw new Error('请配置 FAL API Key')
     }
 
-    const response = await fetch(`https://queue.fal.run/${endpoint}`, {
+    const response = await fetch(buildFalQueueUrl(endpoint), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -93,7 +94,7 @@ export async function queryFalStatus(endpoint: string, requestId: string, apiKey
         _ulogInfo(`[FAL Status] 解析端点 ${endpoint} -> ${baseEndpoint} (忽略路径: ${parsed.path})`)
     }
 
-    const statusUrl = `https://queue.fal.run/${baseEndpoint}/requests/${requestId}/status?logs=0`
+    const statusUrl = buildFalQueueUrl(`${baseEndpoint}/requests/${requestId}/status?logs=0`)
 
     // FAL 状态查询使用 GET 方法
     const response = await fetch(statusUrl, {
@@ -122,7 +123,7 @@ export async function queryFalStatus(endpoint: string, requestId: string, apiKey
         // 优先使用返回的 response_url，如果没有则构建 URL
         // 注意：获取结果必须使用完整的原始端点（包括 /edit 等路径），而不是 baseEndpoint
         // 否则 FAL 会把请求当作新任务处理，导致 422 错误（缺少 image_urls 等必需参数）
-        const resultUrl = data.response_url || `https://queue.fal.run/${endpoint}/requests/${requestId}`
+        const resultUrl = data.response_url || buildFalQueueUrl(`${endpoint}/requests/${requestId}`)
         _ulogInfo(`[FAL Status] 任务已完成，获取结果: ${resultUrl}`)
 
         const resultResponse = await fetch(resultUrl, {

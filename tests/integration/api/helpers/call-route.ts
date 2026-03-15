@@ -1,18 +1,19 @@
 import { NextRequest } from 'next/server'
 
-type RouteParams = Record<string, string>
+type RouteParamValue = string | string[] | undefined
+type RouteParams = Record<string, RouteParamValue>
 type HeaderMap = Record<string, string>
 
-type RouteHandler = (
+type RouteHandler<TParams extends RouteParams = RouteParams> = (
   req: NextRequest,
-  ctx?: { params: Promise<RouteParams> },
+  ctx: { params: Promise<TParams> },
 ) => Promise<Response>
 
-export async function callRoute(
-  handler: RouteHandler,
+export async function callRoute<TParams extends RouteParams>(
+  handler: RouteHandler<TParams>,
   method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE',
   body?: unknown,
-  options?: { headers?: HeaderMap; params?: RouteParams; query?: Record<string, string> },
+  options?: { headers?: HeaderMap; params?: TParams; query?: Record<string, string> },
 ) {
   const url = new URL('http://localhost:3000/api/test')
   if (options?.query) {
@@ -30,6 +31,6 @@ export async function callRoute(
     },
     ...(payload ? { body: payload } : {}),
   })
-  const context = { params: Promise.resolve(options?.params || {}) }
+  const context = { params: Promise.resolve((options?.params || {}) as TParams) }
   return await handler(req, context)
 }

@@ -6,6 +6,7 @@
  */
 
 import { logInternal } from './logging/semantic'
+import { buildFalQueueUrl } from '@/lib/providers/fal/base-url'
 
 export interface TaskStatus {
     status: 'pending' | 'completed' | 'failed'
@@ -51,7 +52,7 @@ export async function queryBananaTaskStatus(requestId: string, apiKey: string): 
 
     try {
         const statusResponse = await fetch(
-            `https://queue.fal.run/fal-ai/nano-banana-pro/requests/${requestId}/status`,
+            buildFalQueueUrl(`fal-ai/nano-banana-pro/requests/${requestId}/status`),
             {
                 headers: { 'Authorization': `Key ${apiKey}` },
                 cache: 'no-store'
@@ -68,7 +69,7 @@ export async function queryBananaTaskStatus(requestId: string, apiKey: string): 
         if (data.status === 'COMPLETED') {
             // 获取结果
             const resultResponse = await fetch(
-                `https://queue.fal.run/fal-ai/nano-banana-pro/requests/${requestId}`,
+                buildFalQueueUrl(`fal-ai/nano-banana-pro/requests/${requestId}`),
                 {
                     headers: { 'Authorization': `Key ${apiKey}` },
                     cache: 'no-store'

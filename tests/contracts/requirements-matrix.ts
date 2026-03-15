@@ -43,6 +43,7 @@ export const REQUIREMENTS_MATRIX: ReadonlyArray<RequirementCoverageEntry> = [
       'tests/integration/api/contract/direct-submit-routes.test.ts',
       'tests/unit/worker/image-task-handlers-core.test.ts',
       'tests/integration/chain/image.chain.test.ts',
+      'tests/system/generate-image.system.test.ts',
     ],
   },
   {
@@ -55,6 +56,7 @@ export const REQUIREMENTS_MATRIX: ReadonlyArray<RequirementCoverageEntry> = [
       'tests/integration/api/contract/direct-submit-routes.test.ts',
       'tests/unit/worker/video-worker.test.ts',
       'tests/integration/chain/video.chain.test.ts',
+      'tests/system/generate-video.system.test.ts',
     ],
   },
   {
@@ -66,6 +68,7 @@ export const REQUIREMENTS_MATRIX: ReadonlyArray<RequirementCoverageEntry> = [
     tests: [
       'tests/unit/novel-promotion/insert-panel-user-input.test.ts',
       'tests/integration/api/contract/direct-submit-routes.test.ts',
+      'tests/system/text-workflow.system.test.ts',
     ],
   },
   {
@@ -78,6 +81,7 @@ export const REQUIREMENTS_MATRIX: ReadonlyArray<RequirementCoverageEntry> = [
       'tests/integration/api/specific/panel-variant-route.test.ts',
       'tests/integration/api/contract/direct-submit-routes.test.ts',
       'tests/unit/worker/panel-variant-task-handler.test.ts',
+      'tests/regression/panel-variant-cross-storyboard.test.ts',
     ],
   },
   {
@@ -90,6 +94,7 @@ export const REQUIREMENTS_MATRIX: ReadonlyArray<RequirementCoverageEntry> = [
       'tests/integration/api/contract/llm-observe-routes.test.ts',
       'tests/unit/worker/script-to-storyboard.test.ts',
       'tests/integration/chain/text.chain.test.ts',
+      'tests/system/text-workflow.system.test.ts',
     ],
   },
   {
@@ -101,7 +106,34 @@ export const REQUIREMENTS_MATRIX: ReadonlyArray<RequirementCoverageEntry> = [
     tests: [
       'tests/unit/helpers/task-state-service.test.ts',
       'tests/integration/api/contract/task-infra-routes.test.ts',
+      'tests/integration/task/create-task-dedupe.integration.test.ts',
       'tests/unit/optimistic/sse-invalidation.test.ts',
+    ],
+  },
+  {
+    id: 'REQ-PROVIDER-PROTOCOL-CONTRACT',
+    feature: 'Provider protocol contract',
+    userValue: '外部 provider 请求格式、轮询状态和错误分类保持稳定',
+    risk: 'provider 协议漂移导致系统链路仅在真实调用时失败',
+    priority: 'P0',
+    tests: [
+      'tests/integration/provider/fal-provider.contract.test.ts',
+      'tests/integration/provider/openai-compat-provider.contract.test.ts',
+      'tests/unit/task/async-poll-external-id.test.ts',
+    ],
+  },
+  {
+    id: 'REQ-TASK-DEDUPE-COMPENSATION',
+    feature: 'Task dedupe and enqueue compensation',
+    userValue: '重复提交不会卡死，队列失败不会留下脏冻结或孤儿任务',
+    risk: '重复任务、孤儿 dedupeKey、enqueue 失败后冻结金额未回滚',
+    priority: 'P0',
+    tests: [
+      'tests/integration/task/create-task-dedupe.integration.test.ts',
+      'tests/integration/billing/submitter.integration.test.ts',
+      'tests/regression/task-dedupe-recovery.test.ts',
+      'tests/regression/task-enqueue-billing-rollback.test.ts',
+      'tests/unit/worker/user-concurrency-gate.test.ts',
     ],
   },
   {
